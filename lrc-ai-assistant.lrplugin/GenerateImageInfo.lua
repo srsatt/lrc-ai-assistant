@@ -1,4 +1,5 @@
 require "AiModelAPI"
+require "OllamaAPI"
 
 SkipReviewCaptions = false
 SkipReviewTitles = false
@@ -329,7 +330,6 @@ local function showPreflightDialog()
 
     propertyTable.submitGPS = prefs.submitGPS
     propertyTable.submitKeywords = prefs.submitKeywords
-
 
     local dialogView = f:column {
         spacing = 10,

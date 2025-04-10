@@ -31,16 +31,8 @@ function PluginInfoDialogSections.startDialog(propertyTable)
     propertyTable.task = prefs.task
     propertyTable.systemInstruction = prefs.systemInstruction
     
-    -- Initialize with default Ollama models from Defaults.lua
-    propertyTable.ollamaModels = {}
-    for _, model in ipairs(Defaults.aiModels) do
-        if string.sub(model.value, 1, 6) == 'ollama' then
-            table.insert(propertyTable.ollamaModels, model)
-        end
-    end
-    
-    -- Fetch available Ollama models on startup
-    PluginInfoDialogSections.fetchOllamaModels(propertyTable)
+    -- Store the current model list
+    propertyTable.aiModels = Defaults.aiModels
 end
 
 function PluginInfoDialogSections.fetchOllamaModels(propertyTable)
@@ -48,10 +40,7 @@ function PluginInfoDialogSections.fetchOllamaModels(propertyTable)
         local success, models = OllamaAPI.fetchAvailableModels()
         
         if success then
-            -- Update the Ollama models list
-            propertyTable.ollamaModels = models
-            
-            -- Update the main AI model list by replacing Ollama models
+            -- Create a new combined model list
             local updatedAiModels = {}
             
             -- First add all non-Ollama models
@@ -61,15 +50,31 @@ function PluginInfoDialogSections.fetchOllamaModels(propertyTable)
                 end
             end
             
-            -- Then add all Ollama models
+            -- Then add all newly fetched Ollama models
             for _, model in ipairs(models) do
                 table.insert(updatedAiModels, model)
             end
             
+            -- Update the models in Defaults so they're available globally
+            Defaults.aiModels = updatedAiModels
+            
             -- Update the observable property
             propertyTable.aiModels = updatedAiModels
+            
+            -- If the current selection is no longer valid, reset to default
+            local currentModelExists = false
+            for _, model in ipairs(updatedAiModels) do
+                if model.value == propertyTable.ai then
+                    currentModelExists = true
+                    break
+                end
+            end
+            
+            if not currentModelExists and #updatedAiModels > 0 then
+                propertyTable.ai = updatedAiModels[1].value
+            end
         else
-            -- Keep the default Ollama models if fetch failed
+            -- Log the error
             log:warn("Failed to fetch Ollama models. Using defaults.")
         end
     end)
@@ -130,7 +135,7 @@ function PluginInfoDialogSections.sectionsForTopOfDialog(f, propertyTable)
                 f:row {
                     f:popup_menu {
                         value = bind 'ai',
-                        items = bind 'aiModels', -- Use the dynamic aiModels property
+                        items = bind 'aiModels',
                     },
                     f:push_button {
                         title = LOC "$$$/lrc-ai-assistant/PluginInfoDialogSections/refreshOllamaModels=Refresh Ollama Models",

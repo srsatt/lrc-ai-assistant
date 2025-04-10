@@ -26,6 +26,7 @@ _G.JSON = require "JSON"
 _G.inspect = require 'inspect'
 require "Util"
 require "Defaults"
+require "OllamaAPI"
 
 -- Global initializations
 _G.prefs = _G.LrPrefs.prefsForPlugin()
@@ -129,3 +130,32 @@ end
 function _G.JSON.assert(b, m)
     LrDialogs.showError("Error decoding JSON response.")
 end
+
+-- Function to initialize Ollama models
+LrTasks.startAsyncTask(function()
+    local success, models = OllamaAPI.fetchAvailableModels()
+    
+    if success then
+        -- Create a new combined model list
+        local updatedAiModels = {}
+        
+        -- First add all non-Ollama models
+        for _, model in ipairs(Defaults.aiModels) do
+            if string.sub(model.value, 1, 6) ~= 'ollama' then
+                table.insert(updatedAiModels, model)
+            end
+        end
+        
+        -- Then add all newly fetched Ollama models
+        for _, model in ipairs(models) do
+            table.insert(updatedAiModels, model)
+        end
+        
+        -- Update the models in Defaults so they're available globally
+        Defaults.aiModels = updatedAiModels
+        
+        log:trace("Successfully loaded " .. #models .. " Ollama models")
+    else
+        log:warn("Failed to fetch Ollama models during initialization. Using defaults.")
+    end
+end)
