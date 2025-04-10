@@ -79,3 +79,7 @@
 
 "$$$/lrc-ai-assistant/GenerateImageInfo/PhotoContextDialogData=Photo Context"
 "$$$/lrc-ai-assistant/PluginInfoDialogSections/showPhotoContextDialog=Show Photo Context dialog"
+"$$$/lrc-ai-assistant/PluginInfoDialogSections/exportSettings=Export settings"
+"$$$/lrc-ai-assistant/PluginInfoDialogSections/exportSize=Export size in pixel (long edge)"
+"$$$/lrc-ai-assistant/PluginInfoDialogSections/exportQuality=Export JPEG quality in percent"
+"$$$/lrc-ai-assistant/PluginInfoDialogSections/refreshOllamaModels=Refresh Ollama Models"

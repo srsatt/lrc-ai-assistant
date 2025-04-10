@@ -35,3 +35,8 @@ end
 function AiModelAPI:analyzeImage(filePath, metadata)
     return self.usedApi:analyzeImage(filePath, metadata)
 end
+
+function AiModelAPI:fetchOllamaModels()
+    -- Use the standalone function to fetch models
+    return OllamaAPI.fetchAvailableModels()
+end

@@ -3,9 +3,13 @@ OllamaAPI.__index = OllamaAPI
 
 function OllamaAPI:new()
     local o = setmetatable({}, OllamaAPI)
-    self.model = prefs.ai
-    self.ollamaModel = string.sub(prefs.ai, 8, -1)
     self.url = Defaults.baseUrls.ollama
+    
+    -- Only set model details if we're using this for requests
+    if prefs.ai and string.sub(prefs.ai, 1, 6) == 'ollama' then
+        self.model = prefs.ai
+        self.ollamaModel = string.sub(prefs.ai, 8, -1)
+    end
 
     return o
 end
@@ -88,4 +92,35 @@ function OllamaAPI:analyzeImage(filePath, metadata)
         return success, result, inputTokenCount, outputTokenCount
     end
     return false, "", inputTokenCount, outputTokenCount
+end
+
+-- Standalone function to fetch Ollama models without needing a class instance
+function OllamaAPI.fetchAvailableModels()
+    local url = "http://localhost:11434/api/tags"
+    
+    local response, headers = LrHttp.get(url)
+    
+    if headers.status == 200 and response ~= nil then
+        log:trace("Ollama models response: " .. response)
+        local decoded = JSON:decode(response)
+        if decoded ~= nil and decoded.models ~= nil then
+            local ollamaModels = {}
+            
+            for _, model in ipairs(decoded.models) do
+                -- Include all models as we can't reliably check for vision support from the API
+                table.insert(ollamaModels, { 
+                    title = 'Ollama ' .. model.name, 
+                    value = 'ollama-' .. model.name 
+                })
+            end
+            
+            return true, ollamaModels
+        else
+            log:error("Failed to parse Ollama models response")
+            return false, "Failed to parse models response"
+        end
+    else
+        log:error("Failed to fetch Ollama models. Status: " .. (headers.status or "unknown"))
+        return false, "Failed to connect to Ollama server"
+    end
 end

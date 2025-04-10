@@ -1,4 +1,5 @@
 PluginInfoDialogSections = {}
+require "OllamaAPI"
 
 function PluginInfoDialogSections.startDialog(propertyTable)
 
@@ -29,7 +30,49 @@ function PluginInfoDialogSections.startDialog(propertyTable)
 
     propertyTable.task = prefs.task
     propertyTable.systemInstruction = prefs.systemInstruction
+    
+    -- Initialize with default Ollama models from Defaults.lua
+    propertyTable.ollamaModels = {}
+    for _, model in ipairs(Defaults.aiModels) do
+        if string.sub(model.value, 1, 6) == 'ollama' then
+            table.insert(propertyTable.ollamaModels, model)
+        end
+    end
+    
+    -- Fetch available Ollama models on startup
+    PluginInfoDialogSections.fetchOllamaModels(propertyTable)
+end
 
+function PluginInfoDialogSections.fetchOllamaModels(propertyTable)
+    LrTasks.startAsyncTask(function()
+        local success, models = OllamaAPI.fetchAvailableModels()
+        
+        if success then
+            -- Update the Ollama models list
+            propertyTable.ollamaModels = models
+            
+            -- Update the main AI model list by replacing Ollama models
+            local updatedAiModels = {}
+            
+            -- First add all non-Ollama models
+            for _, model in ipairs(Defaults.aiModels) do
+                if string.sub(model.value, 1, 6) ~= 'ollama' then
+                    table.insert(updatedAiModels, model)
+                end
+            end
+            
+            -- Then add all Ollama models
+            for _, model in ipairs(models) do
+                table.insert(updatedAiModels, model)
+            end
+            
+            -- Update the observable property
+            propertyTable.aiModels = updatedAiModels
+        else
+            -- Keep the default Ollama models if fetch failed
+            log:warn("Failed to fetch Ollama models. Using defaults.")
+        end
+    end)
 end
 
 function PluginInfoDialogSections.sectionsForBottomOfDialog(f, propertyTable)
@@ -70,6 +113,9 @@ end
 function PluginInfoDialogSections.sectionsForTopOfDialog(f, propertyTable)
     local bind = LrView.bind
     local share = LrView.share
+    
+    -- Initialize aiModels property with default values
+    propertyTable.aiModels = Defaults.aiModels
 
     return {
 
@@ -84,12 +130,16 @@ function PluginInfoDialogSections.sectionsForTopOfDialog(f, propertyTable)
                 f:row {
                     f:popup_menu {
                         value = bind 'ai',
-                        items = Defaults.aiModels,
+                        items = bind 'aiModels', -- Use the dynamic aiModels property
+                    },
+                    f:push_button {
+                        title = LOC "$$$/lrc-ai-assistant/PluginInfoDialogSections/refreshOllamaModels=Refresh Ollama Models",
+                        action = function(button)
+                            PluginInfoDialogSections.fetchOllamaModels(propertyTable)
+                        end,
                     },
                     f:static_text {
                         title = LOC "$$$/lrc-ai-assistant/PluginInfoDialogSections/showCosts=Show costs (without any warranty!!!)",
-                        -- alignment = 'right',
-                        -- width = share 'labelWidth',
                     },
                     f:checkbox {
                         value = bind 'showCosts',

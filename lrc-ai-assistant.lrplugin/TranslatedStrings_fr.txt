@@ -80,4 +80,8 @@
 "$$$/lrc-ai-assistant/GenerateImageInfo/SkipPreflightFromHere=Utiliser pour toutes les images suivantes."
 
 "$$$/lrc-ai-assistant/GenerateImageInfo/PhotoContextDialogData=Contexte de la photo"
-"$$$/lrc-ai-assistant/PluginInfoDialogSections/showPhotoContextDialog=Afficher la boîte de dialogue Contexte de la photo"
+"$$$/lrc-ai-assistant/PluginInfoDialogSections/showPhotoContextDialog=Afficher le dialogue de contexte de photo"
+"$$$/lrc-ai-assistant/PluginInfoDialogSections/exportSettings=Paramètres d'exportation"
+"$$$/lrc-ai-assistant/PluginInfoDialogSections/exportSize=Taille d'exportation en pixels (bord long)"
+"$$$/lrc-ai-assistant/PluginInfoDialogSections/exportQuality=Qualité JPEG d'exportation en pourcentage"
+"$$$/lrc-ai-assistant/PluginInfoDialogSections/refreshOllamaModels=Actualiser les modèles Ollama"
